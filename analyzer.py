@@ -18,29 +18,27 @@ class Mastery:
         self.blocks_dicc = Counter()		#Dict with blocks
 
 
-    """Start the analysis."""
     def process(self, filename):
-        print filename,
+        """Start the analysis."""
         zip_file = zipfile.ZipFile(filename, "r")
         json_project = json.loads(zip_file.open("project.json").read())
-        for key, value in json_project.iteritems():
+        for key, value in json_project.items():
             if key == "targets":
                 for dicc in value:
-                    for dicc_key, dicc_value in dicc.iteritems():
+                    for dicc_key, dicc_value in dicc.items():
                         if dicc_key == "blocks":
-                            for blocks, blocks_value in dicc_value.iteritems():
+                            for blocks, blocks_value in dicc_value.items():
                                 if type(blocks_value) is dict:
                                     self.total_blocks.append(blocks_value)
 
         for block in self.total_blocks:
-            for key, value in block.iteritems():
+            for key, value in block.items():
                 if key == "opcode":
                     self.blocks_dicc[value] += 1
 
 
-    """Run and return the results of Mastery. """
     def analyze(self):
-
+        """Run and return the results of Mastery. """
         self.logic()
         self.flow_control()
         self.synchronization()
@@ -50,18 +48,14 @@ class Mastery:
         self.parallelization()
 
 
-    """Output the overall programming competence"""
     def finalize(self, filename):
-        result = ""
-        result += filename
-        result += '\n'
-        result += json.dumps(self.mastery_dicc)
-        result += '\n'
+        """Output the overall programming competence"""
+        result = "" + filename + '\n' + json.dumps(self.mastery_dicc) + '\n'
         total = 0
         for i in self.mastery_dicc.items():
             total += i[1]
         result += ("Total mastery points: %d/21\n" % total)
-        average =  float (total) / 7
+        average =  float(total)/7
         result += ("Average mastery points: %.2f/3\n" % average)
         if average > 2:
             result += "Overall programming competence: Proficiency"
@@ -69,23 +63,17 @@ class Mastery:
             result += "Overall programming competence: Developing"
         else:
             result += "Overall programming competence: Basic"
-
-        dic_result = self.mastery_dicc
-        result2 = list(("", total, average, result.split(':')[-1][1:]))
+        result2 = list((filename, total, average, result.split(':')[-1][1:]))
         result2.extend(self.mastery_dicc.values()) # To list of values
-        #print(item, sep=',', end='', flush=True) # with python3
+        #print(item, sep=',', end='', flush=False) # with python3
         # write a row to csv
-        for item in result2:
-            print item,',',
-        return result2
+        print(*[item for item in result2], sep=',')
 
 
-    """Assign the Logic skill result"""
     def logic(self):
-
+        """Assign the Logic skill result"""
         operations = {'operator_and', 'operator_or', 'operator_not'}
         score = 0
-
         for operation in operations:
             if self.blocks_dicc[operation]:
                 score = 3
@@ -100,9 +88,8 @@ class Mastery:
         self.mastery_dicc['Logic'] = score
 
 
-    """Assign the Flow Control skill result"""
     def flow_control(self):
-
+        """Assign the Flow Control skill result"""
         score = 0
         if self.blocks_dicc['control_repeat_until']:
             score = 3
@@ -110,25 +97,23 @@ class Mastery:
             score = 2
         else:
             for block in self.total_blocks:
-                for key, value in block.iteritems():
+                for key, value in block.items():
                     if key == "next" and value != None:
                         score = 1
                         break
         self.mastery_dicc['FlowControl'] = score
 
 
-    """Assign the Syncronization skill result"""
     def synchronization(self):
-
+        """Assign the Syncronization skill result"""
         score = 0
-
         if (self.blocks_dicc['control_wait_until'] or
             self.blocks_dicc['event_whenbackdropswitchesto'] or
             self.blocks_dicc['event_broadcastandwait']):
                 score = 3
         elif (self.blocks_dicc['event_broadcast'] or
-            self.blocks_dicc['event_whenbroadcastreceived'] or
-            self.blocks_dicc['control_stop']):
+              self.blocks_dicc['event_whenbroadcastreceived'] or
+              self.blocks_dicc['control_stop']):
                 score = 2
         elif self.blocks_dicc['control_wait']:
                 score = 1
@@ -136,11 +121,9 @@ class Mastery:
         self.mastery_dicc['Synchronization'] = score
 
 
-    """Assign the Abstraction skill result"""
     def abstraction(self):
-
+        """Assign the Abstraction skill result"""
         score = 0
-
         if self.blocks_dicc['control_start_as_clone']:
             score = 3
         elif self.blocks_dicc['procedures_definition']:
@@ -148,7 +131,7 @@ class Mastery:
         else:
             count = 0
             for block in self.total_blocks:
-                for key, value in block.iteritems():
+                for key, value in block.items():
                     if key == "parent" and value == None:
                         count += 1
             if count > 1 :
@@ -157,27 +140,22 @@ class Mastery:
         self.mastery_dicc['Abstraction'] = score
 
 
-    """Assign the Data representation skill result"""
     def data_representation(self):
-
+        """Assign the Data representation skill result"""
         score = 0
-
         modifiers = {'motion_movesteps', 'motion_gotoxy', 'motion_glidesecstoxy', 'motion_setx', 'motion_sety',
-                    'motion_changexby', 'motion_changeyby', 'motion_pointindirection', 'motion_pointtowards',
-                    'motion_turnright', 'motion_turnleft', 'motion_goto',
-                    'looks_changesizeby', 'looks_setsizeto', 'looks_switchcostumeto', 'looks_nextcostume',
-                    'looks_changeeffectby', 'looks_seteffectto', 'looks_show', 'looks_hide', 'looks_switchbackdropto',
-                    'looks_nextbackdrop'}
-
+                     'motion_changexby', 'motion_changeyby', 'motion_pointindirection', 'motion_pointtowards',
+                     'motion_turnright', 'motion_turnleft', 'motion_goto',
+                     'looks_changesizeby', 'looks_setsizeto', 'looks_switchcostumeto', 'looks_nextcostume',
+                     'looks_changeeffectby', 'looks_seteffectto', 'looks_show', 'looks_hide', 'looks_switchbackdropto',
+                     'looks_nextbackdrop'}
         lists = {'data_lengthoflist', 'data_showlist', 'data_insertatlist', 'data_deleteoflist', 'data_addtolist',
-                'data_replaceitemoflist', 'data_listcontainsitem', 'data_hidelist', 'data_itemoflist'}
-
+                 'data_replaceitemoflist', 'data_listcontainsitem', 'data_hidelist', 'data_itemoflist'}
         for item in lists:
             if self.blocks_dicc[item]:
                 score = 3
                 self.mastery_dicc['DataRepresentation'] = score
                 return
-
         if self.blocks_dicc['data_changevariableby'] or self.blocks_dicc['data_setvariableto']:
             score = 2
         else:
@@ -187,14 +165,14 @@ class Mastery:
         self.mastery_dicc['DataRepresentation'] = score
 
 
-    """Assign the User Interactivity skill result"""
     def user_interactivity(self):
+        """Assign the User Interactivity skill result"""
         score = 0
         proficiency = {'videoSensing_videoToggle', 'videoSensing_videoOn', 'videoSensing_whenMotionGreaterThan',
-                        'videoSensing_setVideoTransparency', 'sensing_loudness'}
+                       'videoSensing_setVideoTransparency', 'sensing_loudness'}
 
         developing = {'event_whenkeypressed', 'event_whenthisspriteclicked', 'sensing_mousedown', 'sensing_keypressed',
-                        'sensing_askandwait', 'sensing_answer'}
+                      'sensing_askandwait', 'sensing_answer'}
 
         for item in proficiency:
             if self.blocks_dicc[item]:
@@ -217,21 +195,22 @@ class Mastery:
         self.mastery_dicc['UserInteractivity'] = score
 
 
-    """Check whether there is a block 'go to mouse' or 'touching mouse-pointer?' """
     def check_mouse(self):
-
+        """Check whether there is a block 'go to mouse' or
+        'touching mouse-pointer?'
+        """
         for block in self.total_blocks:
-            for key, value in block.iteritems():
+            for key, value in block.items():
                 if key == 'fields':
-                    for mouse_key, mouse_val in value.iteritems():
+                    for mouse_key, mouse_val in value.items():
                         if (mouse_key == 'TO' or mouse_key =='TOUCHINGOBJECTMENU') and mouse_val[0] == '_mouse_':
                             return 1
         return 0
 
 
-    """Assign the Parallelization skill result"""
-    def parallelization (self):
 
+    def parallelization (self):
+        """Assign the Parallelization skill result"""
         score = 0
         keys = []
         messages = []
@@ -280,13 +259,11 @@ class Mastery:
                     if dict_parall['KEY_OPTION'].count(var) > 1:
                         score = 2
 
-
         if self.blocks_dicc['event_whenthisspriteclicked'] > 1:           # Sprite with 2 scripts on clicked
             score = 2
 
         if self.blocks_dicc['event_whenflagclicked'] > 1 and score == 0:  # 2 scripts on green flag
             score = 1
-
 
         self.mastery_dicc['Parallelization'] = score
 
@@ -295,9 +272,9 @@ class Mastery:
         dicc = {}
 
         for block in self.total_blocks:
-            for key, value in block.iteritems():
+            for key, value in block.items():
                 if key == 'fields':
-                    for key_pressed, val_pressed in value.iteritems():
+                    for key_pressed, val_pressed in value.items():
                         if key_pressed in dicc:
                             dicc[key_pressed].append(val_pressed[0])
                         else:
@@ -308,7 +285,6 @@ class Mastery:
 
 def main(filename):
     """The entrypoint for the `Mastery` extension"""
-
     mastery = Mastery()
     mastery.process(filename)
     mastery.analyze()
@@ -324,3 +300,8 @@ if __name__ == "__main__":
         print("You must enter the name of the project.")
     except IOError:
         print(sys.argv[1], " does not exist.")
+    except (AttributeError, zipfile.BadZipFile, json.decoder.JSONDecodeError):
+        #exc_type, exc_obj, exc_tb = sys.exc_info()
+        #fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        #print(filename, exc_type, fname, exc_tb.tb_lineno, sep=',', file=sys.stderr)
+        print(filename, sep=',', file=sys.stderr)
