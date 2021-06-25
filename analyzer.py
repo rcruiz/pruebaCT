@@ -3,7 +3,7 @@
 import json
 from collections import Counter
 import zipfile
-import sys
+import sys, traceback
 import os
 
 
@@ -301,7 +301,7 @@ if __name__ == "__main__":
     except IOError:
         print(sys.argv[1], " does not exist.")
     except (AttributeError, zipfile.BadZipFile, json.decoder.JSONDecodeError):
-        #exc_type, exc_obj, exc_tb = sys.exc_info()
-        #fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        #print(filename, exc_type, fname, exc_tb.tb_lineno, sep=',', file=sys.stderr)
-        print(filename, sep=',', file=sys.stderr)
+        _, _, exc_tb = sys.exc_info()
+        formatted_lines = traceback.format_exc().splitlines()
+        exception = formatted_lines[-1].split(':')[0]
+        print(filename, exception, exc_tb.tb_lineno, sep=',', file=sys.stderr)
