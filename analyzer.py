@@ -3,12 +3,16 @@
 import json
 from collections import Counter
 import zipfile
-import sys, traceback
+import sys, traceback, os
 import os
+import spriteNaming
+import backdropNaming
+import duplicateScripts
+import deadCode
+import attributeInitialization
 
 
 class Mastery:
-
     """Analyzer of projects sb3, the new version Scratch 3.0"""
 
     def __init__(self):
@@ -63,10 +67,19 @@ class Mastery:
             result += "Overall programming competence: Developing"
         else:
             result += "Overall programming competence: Basic"
+
         result2 = list((filename, total, average, result.split(':')[-1][1:]))
         result2.extend(self.mastery_dicc.values()) # To list of values
-        #print(item, sep=',', end='', flush=False) # with python3
-        # write a row to csv
+        default_sprite_names = spriteNaming.main(filename)
+        default_backdrop_names = backdropNaming.main(filename)
+        duplicate_scripts = duplicateScripts.main(filename)
+        dead_code = deadCode.main(filename)
+        #initial_attr = attributeInitialization.main(filename)
+        result2.extend([default_sprite_names, default_backdrop_names, duplicate_scripts, dead_code])
+        #result2.extend([default_sprite_names, default_backdrop_names,
+        #                duplicate_scripts,dead_code, initial_attr])
+        #print(item, sep='","', end='', flush=False)
+        # Write a row to csv
         print(*[item for item in result2], sep=',')
 
 
@@ -79,12 +92,10 @@ class Mastery:
                 score = 3
                 self.mastery_dicc['Logic'] = score
                 return
-
         if self.blocks_dicc['control_if_else']:
             score = 2
         elif self.blocks_dicc['control_if']:
             score = 1
-
         self.mastery_dicc['Logic'] = score
 
 
@@ -117,7 +128,6 @@ class Mastery:
                 score = 2
         elif self.blocks_dicc['control_wait']:
                 score = 1
-
         self.mastery_dicc['Synchronization'] = score
 
 
@@ -136,7 +146,6 @@ class Mastery:
                         count += 1
             if count > 1 :
                 score = 1
-
         self.mastery_dicc['Abstraction'] = score
 
 
@@ -151,6 +160,7 @@ class Mastery:
                      'looks_nextbackdrop'}
         lists = {'data_lengthoflist', 'data_showlist', 'data_insertatlist', 'data_deleteoflist', 'data_addtolist',
                  'data_replaceitemoflist', 'data_listcontainsitem', 'data_hidelist', 'data_itemoflist'}
+
         for item in lists:
             if self.blocks_dicc[item]:
                 score = 3
@@ -208,7 +218,6 @@ class Mastery:
         return 0
 
 
-
     def parallelization (self):
         """Assign the Parallelization skill result"""
         score = 0
@@ -217,7 +226,6 @@ class Mastery:
         backdrops = []
         multimedia = []
         dict_parall = {}
-
         dict_parall = self.parallelization_dict()
 
         if self.blocks_dicc['event_whenbroadcastreceived'] > 1:            # 2 Scripts start on the same received message
@@ -251,7 +259,6 @@ class Mastery:
             score = 3
             self.mastery_dicc['Parallelization'] = score
             return
-
         if self.blocks_dicc['event_whenkeypressed'] > 1:                   # 2 Scripts start on the same key pressed
             if dict_parall['KEY_OPTION']:
                 var_list = set(dict_parall['KEY_OPTION'])
@@ -270,7 +277,6 @@ class Mastery:
 
     def parallelization_dict(self):
         dicc = {}
-
         for block in self.total_blocks:
             for key, value in block.items():
                 if key == 'fields':
@@ -279,7 +285,6 @@ class Mastery:
                             dicc[key_pressed].append(val_pressed[0])
                         else:
                             dicc[key_pressed] = val_pressed
-
         return dicc
 
 
@@ -300,8 +305,9 @@ if __name__ == "__main__":
         print("You must enter the name of the project.")
     except IOError:
         print(sys.argv[1], " does not exist.")
-    except (AttributeError, zipfile.BadZipFile, json.decoder.JSONDecodeError):
+    except(KeyError, AttributeError, RecursionError, zipfile.BadZipFile, json.decoder.JSONDecodeError):
         _, _, exc_tb = sys.exc_info()
+        path_error = os.path.dirname(os.path.abspath(__file__)) + "/" + filename
         formatted_lines = traceback.format_exc().splitlines()
         exception = formatted_lines[-1].split(':')[0]
         print(filename, exception, exc_tb.tb_lineno, sep=',', file=sys.stderr)
